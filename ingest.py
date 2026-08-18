@@ -4,6 +4,7 @@ import time
 from dotenv import load_dotenv
 from supabase import create_client, Client
 from fastembed import TextEmbedding
+import string
 
 # 1. Load environment variables (.env for local runs, GitHub Secrets for CI/CD runs)
 load_dotenv()
@@ -31,7 +32,7 @@ def fetch_and_ingest_recipes():
     print("🚀 Starting Automated Recipe Ingestion Pipeline...")
     
     # Query letters to pull a representative sample of recipes
-    letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g'] 
+    letters = list(string.ascii_lowercase) 
     total_added = 0
     total_skipped = 0
 
