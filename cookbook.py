@@ -1,12 +1,14 @@
 import os
 import json
 from fastapi import FastAPI, HTTPException, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
 from supabase import create_client, Client
 from dotenv import load_dotenv
 from fastembed import TextEmbedding # Free local ML Embeddings
 import google.generativeai as genai # AI Customizer RAG extension
+
 
 # Load environment variables (SUPABASE_URL, SUPABASE_KEY, GEMINI_API_KEY)
 load_dotenv()
@@ -15,6 +17,14 @@ app = FastAPI(
     title="Medes Recipe Backend API",
     description="API for managing ingredients, hybrid ML matching, and RAG AI recipe customization.",
     version="2.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
 )
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
@@ -196,3 +206,16 @@ async def ingest_recipe(recipe: RecipeIngest):
 async def health_check():
     """Simple health check to ensure the API is running."""
     return {"status": "healthy", "service": "Medes Recipe API"}
+
+@app.get("/api/all-recipes")
+async def get_all_recipes():
+    """
+    Fetches all recipes from Supabase sorted alphabetically for the A-to-Z catalog view.
+    """
+    try:
+        response = supabase.table("recipes").select("*").order("title", desc=False).execute()
+        return {"recipes": response.data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    
